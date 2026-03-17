@@ -1,0 +1,60 @@
+<div class="container py-5">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+      <div class="card shadow border-0">
+        <div class="card-body p-4">
+          <h2 class="text-center fw-bold text-primary mb-4">Registra Nuovo Admin</h2>
+
+          <div *ngIf="errorMessage" class="alert alert-danger">{{ errorMessage }}</div>
+
+          <form (ngSubmit)="onRegister()" #regForm="ngForm">
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Nome</label>
+                <input type="text" class="form-control" name="nome" [(ngModel)]="userData.nome" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Cognome</label>
+                <input type="text" class="form-control" name="cognome" [(ngModel)]="userData.cognome" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Codice Fiscale</label>
+              <input type="text" class="form-control" name="cf" [(ngModel)]="userData.cf" maxlength="16" required>
+            </div>
+
+            <div class="row">
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Data di Nascita</label>
+                <input type="date" class="form-control" name="dataNascita" [(ngModel)]="userData.dataNascita" required>
+              </div>
+              <div class="col-md-6 mb-3">
+                <label class="form-label small fw-bold">Telefono</label>
+                <input type="text" class="form-control" name="telefono" [(ngModel)]="userData.telefono" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label small fw-bold">Email Professionale</label>
+              <input type="email" class="form-control" name="email" [(ngModel)]="userData.email" required>
+            </div>
+
+            <div class="mb-4">
+              <label class="form-label small fw-bold">Password</label>
+              <input type="password" class="form-control" name="password" [(ngModel)]="userData.password" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" [disabled]="!regForm.valid">
+              Crea Account Admin
+            </button>
+
+            <div class="text-center mt-3">
+              <a routerLink="/login" class="text-decoration-none small">Hai già un account? Accedi</a>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

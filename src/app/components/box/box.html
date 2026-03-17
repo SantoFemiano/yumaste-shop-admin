@@ -1,0 +1,229 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="text-secondary fw-bold">Gestione Box</h2>
+        <p class="text-muted">Crea e gestisci le food box del catalogo.</p>
+      </div>
+      <div>
+        <button class="btn btn-success shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#modalBox">
+          <i class="bi bi-plus-lg me-1"></i> Nuova Box
+        </button>
+        <button class="btn btn-primary shadow-sm" (click)="caricaBoxes()" [disabled]="isLoading">
+          @if (isLoading) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="bi bi-arrow-clockwise me-1"></i>
+          }
+          Aggiorna Lista
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow border-0">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+        <tr>
+          <th>Immagine</th>
+          <th>EAN</th>
+          <th>Nome Box</th>
+          <th>Categoria</th>
+          <th>Prezzo</th>
+          <th>Prezzo Scontato</th>
+          <th>Sconto</th>
+          <th>Stato</th>
+          <th>Info</th> </tr>
+        </thead>
+        <tbody>
+          @if (isLoading) {
+            <tr>
+              <td colspan="9" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 text-muted small fw-bold">Caricamento in corso...</div>
+              </td>
+            </tr>
+          } @else {
+            @for (b of boxes; track b.ean) {
+              <tr>
+                <td>
+                  @if (b.immagineUrl) {
+                    <img [src]="b.immagineUrl" alt="Box" style="width: 40px; height: 40px; object-fit: cover;" class="rounded shadow-sm">
+                  } @else {
+                    <span class="badge bg-light text-secondary border">No Img</span>
+                  }
+                </td>
+                <td class="fw-bold">{{ b.ean }}</td>
+                <td class="fw-semibold text-primary">{{ b.nome }}</td>
+                <td><span class="badge bg-secondary">{{ b.categoria }}</span></td>
+                <td class="fw-bold">€ {{ b.prezzo }}</td>
+                <td class="fw-bold text-danger" >€ {{ b.prezzoScontato }}</td>
+                <td class="fw-bold">% {{ b.percentualeSconto }}</td>
+                <td>
+                  <span class="badge" [ngClass]="b.attivo ? 'bg-success' : 'bg-danger'">
+                    {{ b.attivo ? 'Attiva' : 'Inattiva' }}
+                  </span>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalDettagliBox" (click)="apriDettagli(b)">
+                    <i class="bi bi-eye"></i> Dettagli
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="9" class="text-center py-5 text-muted">
+                  <i class="bi bi-inbox-fill fs-3 d-block mb-2"></i>
+                  Nessuna Box presente nel catalogo.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalBox" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header bg-light">
+        <h5 class="modal-title fw-bold text-primary">Crea Nuova Box</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form #boxForm="ngForm" (ngSubmit)="salvaBox(boxForm)">
+        <div class="modal-body">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Codice EAN</label>
+              <input type="text" class="form-control" name="ean" [(ngModel)]="nuovaBox.ean" required>
+            </div>
+            <div class="col-md-8 mb-3">
+              <label class="form-label small fw-bold">Nome Box</label>
+              <input type="text" class="form-control" name="nome" [(ngModel)]="nuovaBox.nome" required>
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Categoria</label>
+              <select class="form-select" name="categoria" [(ngModel)]="nuovaBox.categoria" required>
+                <option value="" disabled selected>Seleziona...</option>
+                <option value="VEGANA">Vegana</option>
+                <option value="CARNE">Carne</option>
+                <option value="PESCE">Pesce</option>
+                <option value="MISTA">Mista</option>
+              </select>
+            </div>
+
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Prezzo Base (€)</label>
+              <input type="number" step="0.01" min="0" class="form-control" name="prezzo" [(ngModel)]="nuovaBox.prezzo" required>
+            </div>
+
+            <div class="col-md-2 mb-3">
+              <label class="form-label small fw-bold">Porzioni</label>
+              <input type="number" min="1" class="form-control" name="porzioni" [(ngModel)]="nuovaBox.porzioni" required>
+            </div>
+
+            <div class="col-md-2 mb-3">
+              <label class="form-label small fw-bold">Q.tà in Box</label>
+              <input type="number" min="1" class="form-control" name="quantitaInBox" [(ngModel)]="nuovaBox.quantitaInBox" required>
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small fw-bold">URL Immagine</label>
+            <input type="url" class="form-control" name="immagineUrl" placeholder="https://..." [(ngModel)]="nuovaBox.immagineUrl" required>
+          </div>
+
+          <div class="form-check form-switch mt-4">
+            <input class="form-check-input" type="checkbox" id="attivoSwitch" name="attivo" [(ngModel)]="nuovaBox.attivo">
+            <label class="form-check-label fw-bold" for="attivoSwitch">Box Attiva e visibile nel catalogo</label>
+          </div>
+        </div>
+
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
+          <button type="submit" class="btn btn-success fw-bold" [disabled]="!boxForm.valid || isSaving">
+            @if (isSaving) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Creazione in corso...
+            } @else {
+              Crea Box
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalDettagliBox" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-info-circle me-2"></i>Totale Nutrizionale Box: {{ boxSelezionataDettagli?.nome }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body p-4">
+
+        @if (isLoadingDettagli) {
+          <div class="text-center py-5">
+            <div class="spinner-border text-info mb-2"></div>
+            <p class="small text-muted">Calcolo dei macros totali in corso...</p>
+          </div>
+        } @else if (boxSelezionataDettagli) {
+
+          <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3">
+            <i class="bi bi-activity me-2"></i>Valori Nutrizionali Totali
+          </h6>
+
+          <div class="row text-center mb-4 g-2">
+            <div class="col-4"><div class="p-2 bg-light rounded border"><small class="d-block text-muted">Kcal</small><strong>{{ boxSelezionataDettagli.macroTotali.chilocalorie }}</strong></div></div>
+            <div class="col-4"><div class="p-2 bg-light rounded border"><small class="d-block text-muted">Proteine</small><strong>{{ boxSelezionataDettagli.macroTotali.proteine }}g</strong></div></div>
+            <div class="col-4"><div class="p-2 bg-light rounded border"><small class="d-block text-muted">Carbo.</small><strong>{{ boxSelezionataDettagli.macroTotali.carboidrati }}g</strong></div></div>
+            <div class="col-4"><div class="p-2 bg-light rounded border"><small class="d-block text-muted">Zuccheri</small><strong>{{ boxSelezionataDettagli.macroTotali.zuccheri }}g</strong></div></div>
+            <div class="col-4"><div class="p-2 bg-light rounded border"><small class="d-block text-muted">Grassi</small><strong>{{ boxSelezionataDettagli.macroTotali.grassi }}g</strong></div></div>
+            <div class="col-4"><div class="p-2 bg-light rounded border"><small class="d-block text-muted">Fibre</small><strong>{{ boxSelezionataDettagli.macroTotali.fibre }}g</strong></div></div>
+            <div class="col-4 mx-auto"><div class="p-2 bg-light rounded border"><small class="d-block text-muted">Sale</small><strong>{{ boxSelezionataDettagli.macroTotali.sale }}g</strong></div></div>
+          </div>
+
+          <h6 class="fw-bold text-secondary border-bottom pb-2 mb-3 mt-2">
+            <i class="bi bi-exclamation-triangle text-warning me-2"></i>Allergeni Presenti
+          </h6>
+
+          @if (boxSelezionataDettagli.allergeni && boxSelezionataDettagli.allergeni.length > 0) {
+            <div>
+              @for (a of boxSelezionataDettagli.allergeni; track a) {
+                <span class="badge bg-danger me-2 mb-2 px-3 py-2 fs-6 shadow-sm">
+                  {{ a }}
+                </span>
+              }
+            </div>
+          } @else {
+            <p class="text-success small fw-bold">
+              <i class="bi bi-check-circle-fill me-1"></i> Nessun allergene segnalato per questa Box.
+            </p>
+          }
+
+        }
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Chiudi</button>
+      </div>
+
+    </div>
+  </div>
+</div>

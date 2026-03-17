@@ -1,0 +1,288 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="row mb-4">
+    <div class="col d-flex justify-content-between align-items-center">
+      <div>
+        <h2 class="text-secondary fw-bold">Gestione Ingredienti</h2>
+        <p class="text-muted">Inventario materie prime, allergeni e valori nutrizionali.</p>
+      </div>
+      <div>
+        <button class="btn btn-success shadow-sm me-2" data-bs-toggle="modal" data-bs-target="#modalIngrediente">
+          <i class="bi bi-plus-lg me-1"></i> Nuovo Ingrediente
+        </button>
+        <button class="btn btn-primary shadow-sm" (click)="caricaDati()" [disabled]="isLoading">
+          @if (isLoading) {
+            <span class="spinner-border spinner-border-sm me-1"></span>
+          } @else {
+            <i class="bi bi-arrow-clockwise me-1"></i>
+          }
+          Aggiorna Lista
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow border-0">
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+        <tr>
+          <th>EAN</th>
+          <th>Nome</th>
+          <th>Fornitore</th>
+          <th>Prezzo</th>
+          <th>Valori & Allergeni </th>
+        </tr>
+        </thead>
+        <tbody>
+          @if (isLoading) {
+            <tr>
+              <td colspan="5" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 text-muted small fw-bold">Caricamento in corso...</div>
+              </td>
+            </tr>
+          } @else {
+            @for (ing of ingredienti; track ing.id) {
+              <tr>
+                <td class="text-muted small">{{ ing.ean }}</td>
+                <td class="fw-bold text-primary">{{ ing.nome }}</td>
+
+                <td>{{ ing.nomeFornitore }}</td>
+
+                <td>€ {{ ing.prezzoPerUnita }} / {{ ing.unitaMisura }}</td>
+                <td>
+                  <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalDettagli" (click)="apriDettagli(ing)">
+                    <i class="bi bi-eye"></i> Dettagli
+                  </button>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="5" class="text-center py-5 text-muted">
+                  <i class="bi bi-basket3 fs-3 d-block mb-2"></i>
+                  Nessun ingrediente in magazzino.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalIngrediente" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+
+      <div class="modal-header bg-light">
+        <h5 class="modal-title fw-bold text-primary">Aggiungi Ingrediente Completo</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <form #ingredienteForm="ngForm" (ngSubmit)="salvaIngrediente()">
+        <div class="modal-body p-0">
+
+          <ul class="nav nav-tabs bg-light pt-2 px-3" id="ingredienteTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+              <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#tabBase" type="button">
+                1. Dati Base
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tabNutrizionali" type="button">
+                2. Valori Nutrizionali
+              </button>
+            </li>
+            <li class="nav-item" role="presentation">
+              <button class="nav-link fw-bold text-danger" data-bs-toggle="tab" data-bs-target="#tabAllergeni" type="button">
+                3. Allergeni
+              </button>
+            </li>
+          </ul>
+
+          <div class="tab-content p-4" id="ingredienteTabsContent">
+
+            <div class="tab-pane fade show active" id="tabBase">
+              <div class="row">
+                <div class="col-md-4 mb-3">
+                  <label class="form-label small fw-bold">EAN (Codice)</label>
+                  <input type="text" class="form-control" name="ean" [(ngModel)]="nuovoIngrediente.ean" required>
+                </div>
+                <div class="col-md-8 mb-3">
+                  <label class="form-label small fw-bold">Fornitore</label>
+                  <select class="form-select border-primary" name="partitaIva" [(ngModel)]="nuovoIngrediente.partitaIva" required>
+                    <option [ngValue]="null" disabled selected>-- Seleziona Fornitore --</option>
+                    @for (f of fornitori; track f.partitaIva) {
+                      <option [ngValue]="f.partitaIva">P.IVA: {{ f.partitaIva }} ({{ f.nome }})</option>
+                    }
+                  </select>
+                </div>
+              </div>
+
+              <div class="mb-3">
+                <label class="form-label small fw-bold">Nome Ingrediente</label>
+                <input type="text" class="form-control" name="nome" [(ngModel)]="nuovoIngrediente.nome" required>
+              </div>
+              <div class="mb-3">
+                <label class="form-label small fw-bold">Descrizione</label>
+                <textarea class="form-control" name="descrizione" rows="2" [(ngModel)]="nuovoIngrediente.descrizione" required></textarea>
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3">
+                  <label class="form-label small fw-bold">Prezzo (€)</label>
+                  <input type="number" step="0.01" min="0" class="form-control" name="prezzo" [(ngModel)]="nuovoIngrediente.prezzoPerUnita" required>
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label small fw-bold">Unità di Misura</label>
+                  <select class="form-select" name="unitaMisura" [(ngModel)]="nuovoIngrediente.unitaMisura" required>
+                    <option value="" disabled selected>-- Seleziona --</option>
+                    <option value="g">Grammi (g)</option>
+                    <option value="kg">Chilogrammi (kg)</option>
+                    <option value="ml">Millilitri (ml)</option>
+                    <option value="l">Litri (L)</option>
+                    <option value="pz">Pezzi (pz)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="tabNutrizionali">
+              <div class="row">
+                <div class="col-md-12 mb-3">
+                  <label class="form-label small fw-bold text-primary">Chilocalorie (Kcal)</label>
+                  <input type="number" step="0.1" min="0" class="form-control border-primary" name="chilocalorie" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.chilocalorie">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label small fw-bold">Proteine (g)</label>
+                  <input type="number" step="0.1" min="0" class="form-control" name="proteine" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.proteine">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label small fw-bold">Carboidrati (g)</label>
+                  <input type="number" step="0.1" min="0" class="form-control" name="carboidrati" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.carboidrati">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label small fw-bold">Di cui Zuccheri (g)</label>
+                  <input type="number" step="0.1" min="0" class="form-control" name="zuccheri" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.zuccheri">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label small fw-bold">Grassi (g)</label>
+                  <input type="number" step="0.1" min="0" class="form-control" name="grassi" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.grassi">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label small fw-bold">Fibre (g)</label>
+                  <input type="number" step="0.1" min="0" class="form-control" name="fibre" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.fibre">
+                </div>
+                <div class="col-md-6 mb-3">
+                  <label class="form-label small fw-bold">Sale (g)</label>
+                  <input type="number" step="0.01" min="0" class="form-control" name="sale" [(ngModel)]="nuovoIngrediente.valoriNutrizionali.sale">
+                </div>
+              </div>
+            </div>
+
+            <div class="tab-pane fade" id="tabAllergeni">
+              <p class="small text-muted mb-3">Seleziona gli allergeni presenti in questo ingrediente:</p>
+              <div class="row">
+                @for (allergene of allergeniList; track allergene.id) {
+                  <div class="col-md-6 mb-2">
+                    <div class="form-check p-2 border rounded hover-bg-light">
+                      <input class="form-check-input ms-1" type="checkbox"
+                             [id]="'allergene-' + allergene.id"
+                             [checked]="isAllergeneSelected(allergene.id)"
+                             (change)="toggleAllergene(allergene.id)">
+                      <label class="form-check-label ms-2 fw-bold text-danger" [for]="'allergene-' + allergene.id">
+                        {{ allergene.nome }}
+                      </label>
+                      @if (allergene.descrizione) {
+                        <div class="small text-muted ms-2 mt-1">{{ allergene.descrizione }}</div>
+                      }
+                    </div>
+                  </div>
+                } @empty {
+                  <div class="col-12 text-center text-muted py-3">
+                    Nessun allergene caricato a sistema.
+                  </div>
+                }
+              </div>
+            </div>
+
+          </div> </div>
+
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
+          <button type="submit" class="btn btn-success fw-bold" [disabled]="!ingredienteForm.valid || isSaving">
+            @if (isSaving) {
+              <span class="spinner-border spinner-border-sm me-1"></span>
+              Salvataggio...
+            } @else {
+              <i class="bi bi-save me-1"></i> Salva Ingrediente
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<div class="modal fade" id="modalDettagli" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title fw-bold">
+          <i class="bi bi-info-circle me-2"></i>Scheda Tecnica: {{ ingredienteSelezionato?.nome }}
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        @if (ingredienteSelezionato) {
+          <div class="mb-4">
+            <h6 class="fw-bold border-bottom pb-2 text-secondary"><i class="bi bi-tag me-1"></i> Informazioni Generali</h6>
+            <div class="row px-2 mt-2">
+              <div class="col-12 mb-1"><strong>EAN:</strong> <span class="text-muted">{{ ingredienteSelezionato.ean }}</span></div>
+              <div class="col-12 mb-1"><strong>Fornitore:</strong> <span class="text-muted">{{ ingredienteSelezionato.nomeFornitore }}</span></div>
+              <div class="col-12 mb-1"><strong>Descrizione:</strong> <span class="text-muted">{{ ingredienteSelezionato.descrizione }}</span></div>
+            </div>
+          </div>
+
+          <div class="mb-4">
+            <h6 class="fw-bold border-bottom pb-2 text-primary"><i class="bi bi-activity me-1"></i> Valori Nutrizionali (per 100{{ ingredienteSelezionato.unitaMisura }})</h6>
+            @if (valoriSelezionati) {
+              <div class="row px-2 mt-2">
+                <div class="col-6 mb-2"><strong>Kcal:</strong> {{ valoriSelezionati.chilocalorie }}</div>
+                <div class="col-6 mb-2"><strong>Proteine:</strong> {{ valoriSelezionati.proteine }}g</div>
+                <div class="col-6 mb-2"><strong>Carboidrati:</strong> {{ valoriSelezionati.carboidrati }}g</div>
+                <div class="col-6 mb-2"><strong>Zuccheri:</strong> {{ valoriSelezionati.zuccheri }}g</div>
+                <div class="col-6 mb-2"><strong>Grassi:</strong> {{ valoriSelezionati.grassi }}g</div>
+                <div class="col-6 mb-2"><strong>Fibre:</strong> {{ valoriSelezionati.fibre }}g</div>
+                <div class="col-6 mb-2"><strong>Sale:</strong> {{ valoriSelezionati.sale }}g</div>
+              </div>
+            } @else {
+              <p class="text-muted small mt-2 px-2 fst-italic">Nessun valore nutrizionale registrato per questo ingrediente.</p>
+            }
+          </div>
+
+          <div>
+            <h6 class="fw-bold border-bottom pb-2 text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Allergeni Segnalati</h6>
+            <div class="mt-2 px-2">
+              @if (allergeniSelezionati && allergeniSelezionati.length > 0) {
+                @for (a of allergeniSelezionati; track a.id) {
+                  <span class="badge bg-danger me-2 mb-2 p-2 shadow-sm">{{ a.nome || a.nomeAllergene || 'Allergene id: ' + a.allergeneId }}</span>
+                }
+              } @else {
+                <span class="badge bg-success p-2 shadow-sm"><i class="bi bi-check-circle me-1"></i> Nessun allergene</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi Scheda</button>
+      </div>
+    </div>
+  </div>
+</div>

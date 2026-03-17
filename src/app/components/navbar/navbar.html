@@ -1,0 +1,39 @@
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm mb-4">
+  <div class="container-fluid">
+    <a class="navbar-brand fw-bold" href="#"><i class="bi bi-shop me-2"></i>Yumaste Admin</a>
+
+    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminMenu">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse" id="adminMenu">
+      <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/dashboard" routerLinkActive="active fw-bold">Fornitori</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/magazzini" routerLinkActive="active fw-bold">Magazzini</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/box" routerLinkActive="active fw-bold">Box</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/sconti" routerLinkActive="active fw-bold">Sconti</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/sconti-box" routerLinkActive="active fw-bold">Sconti-Box</a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" routerLink="/ingredienti" routerLinkActive="active fw-bold">Ingredienti</a>
+        </li>
+      </ul>
+
+      <div class="d-flex align-items-center text-white">
+        <span class="me-3 small"><i class="bi bi-person-circle me-1"></i> Admin</span>
+        <button class="btn btn-outline-light btn-sm fw-bold" (click)="logout()">
+          <i class="bi bi-box-arrow-right me-1"></i> Esci
+        </button>
+      </div>
+    </div>
+  </div>
+</nav>

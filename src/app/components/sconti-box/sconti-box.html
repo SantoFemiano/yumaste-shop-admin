@@ -1,0 +1,101 @@
+<app-navbar></app-navbar>
+
+<div class="container mt-5">
+  <div class="row mb-4">
+    <div class="col">
+      <h2 class="text-secondary fw-bold">Associazione Sconti & Box</h2>
+      <p class="text-muted">Applica una promozione esistente a una o più Food Box.</p>
+    </div>
+  </div>
+
+  <div class="card shadow-sm border-0 mb-5">
+    <div class="card-body p-4">
+      <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-link-45deg me-2"></i>Crea Collegamento</h5>
+
+      <div class="row align-items-end">
+        <div class="col-md-5 mb-3 mb-md-0">
+          <label class="form-label small fw-bold">1. Seleziona lo Sconto Attivo</label>
+          <select class="form-select" [(ngModel)]="selectedScontoId">
+            <option [ngValue]="null" disabled selected>Scegli una promozione...</option>
+            @for (s of sconti; track s.nome) {
+              <option [value]="s.id">{{ s.nome }} ({{ s.valore }}%)</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-5 mb-3 mb-md-0">
+          <label class="form-label small fw-bold">2. Seleziona la Box</label>
+          <select class="form-select" [(ngModel)]="selectedBoxId">
+            <option [ngValue]="null" disabled selected>Scegli una food box...</option>
+            @for (b of boxes; track b.ean) {
+              <option [value]="b.id">{{ b.nome }} - EAN: {{ b.ean }}</option>
+            }
+          </select>
+        </div>
+
+        <div class="col-md-2">
+          <button class="btn btn-success w-100 fw-bold shadow-sm"
+                  (click)="collegaSconto()"
+                  [disabled]="isSaving || isLoading">
+            @if (isSaving) {
+              <span class="spinner-border spinner-border-sm"></span>
+            } @else {
+              Applica
+            }
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card shadow border-0">
+    <div class="card-header bg-light py-3">
+      <h6 class="mb-0 fw-bold text-secondary">Riepilogo Box in Catalogo</h6>
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+        <tr>
+          <th>Box</th>
+          <th>EAN</th>
+          <th>Prezzo Base</th>
+          <th>Sconto Attuale</th>
+        </tr>
+        </thead>
+        <tbody>
+          @if (isLoading) {
+            <tr>
+              <td colspan="4" class="text-center py-5">
+                <div class="spinner-border text-primary" role="status"></div>
+                <div class="mt-2 text-muted small">Sincronizzazione dati...</div>
+              </td>
+            </tr>
+          } @else {
+            @for (b of boxes; track b.ean) {
+              <tr>
+                <td class="fw-bold text-primary">{{ b.nome }}</td>
+                <td class="small text-muted">{{ b.ean }}</td>
+                <td>€ {{ b.prezzo }}</td>
+                <td>
+                  @if (b.percentualeSconto && b.percentualeSconto > 0) {
+                    <span class="badge bg-warning text-dark">
+                      -{{ b.percentualeSconto }}% (Prezzo finale: € {{ b.prezzoScontato }})
+                    </span>
+                  } @else {
+                    <span class="text-muted small fst-italic">Nessuno sconto</span>
+                  }
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="4" class="text-center py-5 text-muted">
+                  Nessuna box caricata.
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
