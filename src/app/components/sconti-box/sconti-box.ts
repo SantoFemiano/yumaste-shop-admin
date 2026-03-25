@@ -5,7 +5,7 @@ import { AdminService } from '../../services/admin';
 import { Box, Sconto } from '../../models/admin-models';
 import { NavbarComponent } from '../navbar/navbar';
 import { finalize } from 'rxjs/operators';
-import { forkJoin } from 'rxjs'; // Importante per chiamate multiple!
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-sconti-box',
@@ -16,16 +16,15 @@ import { forkJoin } from 'rxjs'; // Importante per chiamate multiple!
 export class ScontiBoxComponent implements OnInit {
   boxes: Box[] = [];
   sconti: Sconto[] = [];
+  associazioni: any[] = []; // Salva le coppie {scontoId, boxId}
+
   isLoading: boolean = false;
   isSaving: boolean = false;
 
-  // Variabili per memorizzare le scelte dell'utente nei menu a tendina
   selectedBoxId: number | null = null;
   selectedScontoId: number | null = null;
 
-  constructor(private adminService: AdminService,
-  private cdr: ChangeDetectorRef
-) {}
+  constructor(private adminService: AdminService, private cdr: ChangeDetectorRef) {}
 
   ngOnInit(): void {
     this.caricaDati();
@@ -34,21 +33,20 @@ export class ScontiBoxComponent implements OnInit {
   caricaDati() {
     this.isLoading = true;
 
-    // forkJoin fa partire le due chiamate API in parallelo
     forkJoin({
       boxesRes: this.adminService.getBoxes(),
-      scontiRes: this.adminService.getScontiValidi()
+      scontiRes: this.adminService.getScontiValidi(),
+      associazioniRes: this.adminService.getAssociazioniScontoBox() // Scarichiamo le associazioni!
     }).pipe(
-      finalize(() => {this.isLoading = false;
-        this.cdr.detectChanges();}
-      )
+      finalize(() => {
+        this.isLoading = false;
+        this.cdr.detectChanges();
+      })
     ).subscribe({
       next: (risultati: any) => {
-        // Gestiamo il fatto che le Box sono dentro una "Page" (content)
         this.boxes = risultati.boxesRes.content ? risultati.boxesRes.content : risultati.boxesRes;
-
-        // Filtriamo gli sconti per mostrare nella tendina SOLO quelli ancora attivi
         this.sconti = risultati.scontiRes.filter((s: Sconto) => s.attivo === true);
+        this.associazioni = risultati.associazioniRes;
       },
       error: (err) => { console.error('Errore caricamento dati:', err); }
     });
@@ -62,28 +60,53 @@ export class ScontiBoxComponent implements OnInit {
 
     this.isSaving = true;
 
-    // CREIAMO IL PAYLOAD ESATTAMENTE COME LO VUOLE SWAGGER
     const payload = {
       scontoId: this.selectedScontoId,
-      boxIds: [this.selectedBoxId] // Lo mettiamo in un array!
+      boxIds: [this.selectedBoxId]
     };
 
-    // Usiamo il payload
     this.adminService.applicaScontoABox(payload).pipe(
-      finalize(() => {this.isSaving = false;
-        this.cdr.detectChanges();})
+      finalize(() => {
+        this.isSaving = false;
+        this.cdr.detectChanges();
+      })
     ).subscribe({
-      next: (response) => {
+      next: () => {
         alert('Sconto applicato con successo!');
         this.selectedBoxId = null;
         this.selectedScontoId = null;
-        // Ricarica la tabella
-        this.caricaDati();
+        this.caricaDati(); // Ricarica tutto
       },
       error: (err) => {
         console.error('Errore durante il collegamento:', err);
         alert('Errore durante il collegamento. Verifica i dati.');
       }
     });
+  }
+
+  // --- NUOVO METODO RIMOZIONE ---
+  rimuoviScontoDallaBox(boxId: number | undefined) {
+    if (!boxId) return;
+
+    // Peschiamo l'associazione dalla lista scaricata per ricavarne lo Sconto ID
+    const associazione = this.associazioni.find(a => a.boxId === boxId);
+
+    if (!associazione || !associazione.scontoId) {
+      alert("Errore: Impossibile trovare lo sconto associato a questa Box.");
+      return;
+    }
+
+    if (confirm("Vuoi rimuovere l'offerta speciale da questa Food Box?")) {
+      this.adminService.removeScontoFromBox(associazione.scontoId, boxId).subscribe({
+        next: () => {
+          alert('Sconto rimosso con successo!');
+          this.caricaDati(); // Aggiorna la UI per mostrare la box senza sconto
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Si è verificato un errore durante la rimozione dello sconto.');
+        }
+      });
+    }
   }
 }

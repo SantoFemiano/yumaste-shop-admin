@@ -25,6 +25,9 @@ export class IngredientiComponent implements OnInit {
   valoriSelezionati: any = null;
   allergeniSelezionati: any[] = [];
 
+  // Variabile per l'ingrediente in modifica
+  ingredienteInModifica: Ingrediente | null = null;
+
   isLoading: boolean = false;
   isSaving: boolean = false;
 
@@ -78,23 +81,34 @@ export class IngredientiComponent implements OnInit {
   toggleAllergene(id: number) {
     const index = this.nuovoIngrediente.allergeniIds.indexOf(id);
     if (index > -1) {
-      this.nuovoIngrediente.allergeniIds.splice(index, 1); // Rimuovi se già spuntato
+      this.nuovoIngrediente.allergeniIds.splice(index, 1);
     } else {
-      this.nuovoIngrediente.allergeniIds.push(id); // Aggiungi se non era spuntato
+      this.nuovoIngrediente.allergeniIds.push(id);
     }
   }
 
   apriDettagli(ing: Ingrediente) {
     this.ingredienteSelezionato = ing;
-
     this.valoriSelezionati = this.tuttiValoriNutrizionali.find(v => v.nome_Ingrediente === ing.nome);
 
-    this.allergeniSelezionati = this.tuttiIngredientiAllergeni.filter(a => a.ingredienteId === ing.id);
+    let idsAllergeni: number[] = [];
+
+    if (ing.allergeniIds && ing.allergeniIds.length > 0) {
+      idsAllergeni = ing.allergeniIds;
+    }
+    else {
+      idsAllergeni = this.tuttiIngredientiAllergeni
+        .filter(a => a.ingredienteId === ing.id)
+        .map(c => c.allergeneId);
+    }
+
+
+    this.allergeniSelezionati = this.allergeniList.filter(al => idsAllergeni.includes(al.id));
   }
-// Verifica se un allergene è già presente nella lista di quelli selezionati
   isAllergeneSelected(id: number): boolean {
     return this.nuovoIngrediente.allergeniIds.includes(id);
   }
+
   salvaIngrediente() {
     if (!this.nuovoIngrediente.partitaIva) {
       alert("Devi selezionare un fornitore nella prima scheda!");
@@ -112,12 +126,56 @@ export class IngredientiComponent implements OnInit {
         alert('Ingrediente salvato con Valori Nutrizionali e Allergeni!');
         this.caricaDati();
         this.nuovoIngrediente = this.getOggettoVuoto();
-        this.cdr.detectChanges(); // Ripristina il form a zero
+        this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Errore durante il salvataggio:', err);
         alert('Errore! Verifica i campi inseriti. (Controlla la console)');
       }
     });
+  }
+
+  // --- METODI PER MODIFICA E CANCELLAZIONE ---
+
+  apriModaleModifica(ing: Ingrediente) {
+    this.ingredienteInModifica = { ...ing };
+  }
+
+  salvaModificaIngrediente() {
+    if (this.ingredienteInModifica && this.ingredienteInModifica.id) {
+      this.isSaving = true;
+      this.adminService.updateIngrediente(this.ingredienteInModifica.id, this.ingredienteInModifica).pipe(
+        finalize(() => {
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: () => {
+          alert('Ingrediente aggiornato con successo!');
+          this.ingredienteInModifica = null; // Chiude la visualizzazione nel modale
+          this.caricaDati();
+        },
+        error: (err) => {
+          console.error('Errore aggiornamento ingrediente:', err);
+          alert('Impossibile aggiornare l\'ingrediente.');
+        }
+      });
+    }
+  }
+
+  onDeleteIngrediente(id: number | undefined) {
+    if (!id) return;
+    if (confirm('Sei sicuro di voler disattivare questo ingrediente?')) {
+      this.adminService.deleteIngrediente(id).subscribe({
+        next: () => {
+          alert('Ingrediente rimosso/disattivato con successo!');
+          this.caricaDati();
+        },
+        error: (err) => {
+          console.error('Errore durante la rimozione', err);
+          alert('Impossibile rimuovere l\'ingrediente.');
+        }
+      });
+    }
   }
 }

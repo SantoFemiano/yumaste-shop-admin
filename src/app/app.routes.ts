@@ -1,7 +1,7 @@
 import { RegisterComponent } from './components/register/register';
 import {Routes} from '@angular/router';
 import {LoginComponent} from './components/login/login';
-import { DashboardComponent } from './components/dashboard/dashboard';
+import { FornitoriComponent } from './components/fornitori/fornitori';
 import { authGuard } from './guards/auth-guard';
 import {MagazziniComponent} from './components/magazzini/magazzini';
 import {BoxComponent} from './components/box/box';
@@ -12,11 +12,13 @@ import {AddIngredienteBoxComponent} from './components/add-ingrediente-box/add-i
 import {OrdiniClientiComponent} from './components/ordini-clienti/ordini-clienti';
 import {ClientiComponent} from './components/clienti/clienti';
 import {CarrelloComponent} from './components/carrello/carrello';
+import {DashboardComponent} from './components/dashboard/dashboard';
 
 export const routes: Routes = [
   { path: 'login', component: LoginComponent },
+  { path: 'dashboard', component: DashboardComponent},
   { path: 'register', component: RegisterComponent },
-  { path: 'dashboard', component: DashboardComponent, canActivate: [authGuard] },
+  { path: 'fornitori', component: FornitoriComponent, canActivate: [authGuard] },
   { path: 'magazzini', component: MagazziniComponent, canActivate: [authGuard] },
   { path: 'box', component: BoxComponent, canActivate: [authGuard] },
   { path: 'sconti', component: ScontiComponent, canActivate: [authGuard] },

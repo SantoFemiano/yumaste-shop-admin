@@ -25,6 +25,9 @@ export class ScontiComponent implements OnInit {
     fineSconto: ''
   };
 
+  // Variabile per lo sconto in fase di modifica
+  scontoInModifica: Sconto | null = null;
+
   constructor(
     private adminService: AdminService,
     private cdr: ChangeDetectorRef
@@ -69,5 +72,49 @@ export class ScontiComponent implements OnInit {
         alert('Errore durante la creazione dello sconto.');
       }
     });
+  }
+
+  // --- LOGICA MODIFICA SCONTO ---
+  apriModaleModifica(sconto: Sconto) {
+    // Creiamo una copia per non sporcare la tabella prima del salvataggio
+    this.scontoInModifica = { ...sconto };
+  }
+
+  salvaModificaSconto() {
+    if (this.scontoInModifica && this.scontoInModifica.id) {
+      this.isSaving = true;
+      this.adminService.updateSconto(this.scontoInModifica.id, this.scontoInModifica).pipe(
+        finalize(() => {
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: () => {
+          alert('Sconto aggiornato con successo!');
+          this.scontoInModifica = null; // Chiude il modale
+          this.caricaSconti(); // Aggiorna i dati
+        },
+        error: (err) => {
+          console.error('Errore durante l\'aggiornamento:', err);
+          alert('Impossibile aggiornare lo sconto.');
+        }
+      });
+    }
+  }
+
+  onDeleteSconto(id: number | undefined) {
+    if (!id) return;
+    if (confirm('Sei sicuro di voler eliminare definitivamente questo sconto?')) {
+      this.adminService.deleteSconto(id).subscribe({
+        next: () => {
+          alert('Sconto eliminato con successo!');
+          this.caricaSconti();
+        },
+        error: (err) => {
+          console.error('Errore durante l\'eliminazione:', err);
+          alert('Impossibile eliminare lo sconto. Potrebbe essere attualmente associato a una Box.');
+        }
+      });
+    }
   }
 }

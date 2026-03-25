@@ -68,15 +68,28 @@
                   <td class="py-3 fw-bold">{{ ordine.totalePrezzo | currency:'EUR':'symbol' }}</td>
 
                   <td class="py-3">
-                    <span class="badge rounded-pill px-3 py-2" [ngClass]="getBadgeClass(ordine.statoOrdine)">
-                      {{ ordine.statoOrdine }}
-                    </span>
+                    <select class="form-select form-select-sm fw-bold shadow-sm rounded-pill px-3"
+                            [ngClass]="getSelectClass(ordine.statoOrdine)"
+                            [(ngModel)]="ordine.statoOrdine"
+                            (change)="onChangeStatoOrdine(ordine.id, ordine.statoOrdine, ordine.statoSpedizione)">
+                      <option class="bg-white text-dark" value="IN_ATTESA">IN ATTESA</option>
+                      <option class="bg-white text-dark" value="SPEDITO">SPEDITO</option>
+                      <option class="bg-white text-dark" value="CONSEGNATO">CONSEGNATO</option>
+                      <option class="bg-white text-dark" value="PAGATO">PAGATO</option>
+                      <option class="bg-white text-dark" value="ANNULLATO">ANNULLATO</option>
+                    </select>
                   </td>
 
                   <td class="py-3">
-                    <span class="badge rounded-pill px-3 py-2" [ngClass]="getBadgeClass(ordine.statoSpedizione)">
-                      {{ ordine.statoSpedizione }}
-                    </span>
+                    <select class="form-select form-select-sm fw-bold shadow-sm rounded-pill px-3"
+                            [ngClass]="getSelectClass(ordine.statoSpedizione)"
+                            [(ngModel)]="ordine.statoSpedizione"
+                            (change)="onChangeStatoOrdine(ordine.id, ordine.statoOrdine, ordine.statoSpedizione)">
+                      <option class="bg-white text-dark" value="IN_PREPARAZIONE">IN PREPARAZIONE</option>
+                      <option class="bg-white text-dark" value="IN_TRANSITO">IN TRANSITO</option>
+                      <option class="bg-white text-dark" value="IN_CONSEGNA">IN CONSEGNA</option>
+                      <option class="bg-white text-dark" value="CONSEGNATO">CONSEGNATO</option>
+                    </select>
                   </td>
 
                   <td class="pe-4 py-3 text-end">

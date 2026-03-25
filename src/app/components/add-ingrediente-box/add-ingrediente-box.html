@@ -44,13 +44,11 @@
 
             <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow-sm rounded-3"
                     [disabled]="composizioneForm.invalid || isSubmitting">
-
               @if (isSubmitting) {
                 <span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Salvataggio...
               } @else {
                 ➕ Aggiungi alla Box
               }
-
             </button>
           </form>
         </div>
@@ -103,8 +101,10 @@
                             </span>
                           </td>
                           <td class="pe-3 py-3 text-end">
-                            <button class="btn btn-sm btn-outline-danger rounded-circle" disabled title="Funzione da implementare">
-                              🗑️
+                            <button class="btn btn-sm btn-outline-danger shadow-sm rounded-3 fw-bold"
+                                    (click)="onRemoveIngredienteDallaBox(ing.nomeIngrediente)"
+                                    title="Rimuovi Ingrediente">
+                              <i class="bi bi-trash"></i> Rimuovi
                             </button>
                           </td>
                         </tr>

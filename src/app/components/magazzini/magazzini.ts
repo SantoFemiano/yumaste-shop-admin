@@ -27,6 +27,9 @@ export class MagazziniComponent implements OnInit {
     nome: '', via: '', civico: '', cap: '', citta: '', provincia: ''
   };
 
+  // --- Variabile per Modifica Magazzino ---
+  magazzinoInModifica: Magazzino | null = null;
+
   // --- Variabili per Modale Inventario ---
   magazzinoSelezionato: Magazzino | null = null;
   giacenzeSelezionate: IngredienteMagazzinoResponse[] = [];
@@ -67,7 +70,6 @@ export class MagazziniComponent implements OnInit {
       next: (res: any) => {
         this.magazzini = res.magazzini;
         this.tutteLeGiacenze = res.giacenze;
-        // Filtriamo per sicurezza eventuali ingredienti non correttamente mappati
         this.ingredientiDisponibili = res.ingredienti.filter((i: any) => i.id != null);
       },
       error: (err) => console.error('Errore nel caricamento dati:', err)
@@ -85,7 +87,7 @@ export class MagazziniComponent implements OnInit {
       next: (res) => {
         alert('Magazzino aggiunto con successo!');
         this.caricaDati();
-        form.resetForm(); // Usa resetForm per pulire anche gli stati di validazione
+        form.resetForm();
       },
       error: (err) => {
         console.error(err);
@@ -94,13 +96,56 @@ export class MagazziniComponent implements OnInit {
     });
   }
 
-  // --- GESTIONE INVENTARIO ---
+  // --- MODIFICA E CANCELLAZIONE MAGAZZINO ---
+
+  apriModaleModifica(m: Magazzino) {
+    this.magazzinoInModifica = { ...m };
+  }
+
+  salvaModificaMagazzino() {
+    if (this.magazzinoInModifica && this.magazzinoInModifica.id) {
+      this.isSaving = true;
+      this.adminService.updateMagazzino(this.magazzinoInModifica.id, this.magazzinoInModifica).pipe(
+        finalize(() => {
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: () => {
+          alert('Magazzino aggiornato con successo!');
+          this.magazzinoInModifica = null; // Chiude il modale
+          this.caricaDati();
+        },
+        error: (err) => {
+          console.error('Errore aggiornamento magazzino:', err);
+          alert('Impossibile aggiornare il magazzino.');
+        }
+      });
+    }
+  }
+
+  onDeleteMagazzino(id: number | undefined) {
+    if (!id) return;
+    if (confirm('Sei sicuro di voler eliminare questo magazzino?')) {
+      this.adminService.deleteMagazzino(id).subscribe({
+        next: () => {
+          alert('Magazzino eliminato con successo!');
+          this.caricaDati();
+        },
+        error: (err) => {
+          console.error('Errore durante l\'eliminazione', err);
+          alert('Impossibile eliminare il magazzino. Potrebbero esserci giacenze collegate.');
+        }
+      });
+    }
+  }
+
+  // --- GESTIONE INVENTARIO (Invariato) ---
 
   apriInventario(magazzino: Magazzino) {
     this.magazzinoSelezionato = magazzino;
     this.aggiornaGiacenzeSelezionate();
 
-    // Inizializza il form vuoto. Ora magazzino.id esiste! 🎉
     this.nuovaGiacenza = {
       magazzinoId: magazzino.id!,
       ingredienteId: 0,
@@ -108,14 +153,10 @@ export class MagazziniComponent implements OnInit {
       lotto: '',
       dataIngresso: new Date().toISOString().split('T')[0]
     };
-
-    // Log di controllo (puoi rimuoverlo quando tutto funziona)
-    console.log("Apertura inventario. ID Magazzino:", magazzino.id);
   }
 
   aggiornaGiacenzeSelezionate() {
     if (this.magazzinoSelezionato?.id) {
-      // Ora questo filtro funzionerà perfettamente
       this.giacenzeSelezionate = this.tutteLeGiacenze.filter(g => g.magazzinoId === this.magazzinoSelezionato!.id);
     } else {
       this.giacenzeSelezionate = [];
@@ -132,7 +173,6 @@ export class MagazziniComponent implements OnInit {
     this.nuovaGiacenza.magazzinoId = this.magazzinoSelezionato.id;
 
     this.adminService.addIngredienteMagazzino(this.nuovaGiacenza).pipe(
-      // Aggiorniamo la lista globale dal backend subito dopo aver salvato
       switchMap(() => this.adminService.getIngredienteMagazzino()),
       finalize(() => {
         this.isSavingGiacenza = false;
@@ -140,11 +180,9 @@ export class MagazziniComponent implements OnInit {
       })
     ).subscribe({
       next: (giacenzeAggiornate) => {
-        // Aggiorniamo i dati nella vista
         this.tutteLeGiacenze = giacenzeAggiornate;
         this.aggiornaGiacenzeSelezionate();
 
-        // Resettiamo il form per un nuovo inserimento
         this.nuovaGiacenza = {
           magazzinoId: this.magazzinoSelezionato!.id!,
           ingredienteId: 0,

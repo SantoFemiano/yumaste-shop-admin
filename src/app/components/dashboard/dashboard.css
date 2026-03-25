@@ -1,0 +1,27 @@
+/* Stili specifici per la Dashboard */
+.fw-black {
+  font-weight: 900;
+}
+
+.tracking-tight {
+  letter-spacing: -0.5px;
+}
+
+.tracking-wide {
+  letter-spacing: 1px;
+}
+
+/* Effetto di sollevamento al passaggio del mouse sulle Card */
+.hover-elevate {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+.hover-elevate:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+}
+
+/* Sfondo grigio leggero al passaggio del mouse per le azioni rapide */
+.hover-bg-light:hover {
+  background-color: #f8f9fa !important;
+}

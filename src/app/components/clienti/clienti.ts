@@ -39,4 +39,27 @@ export class ClientiComponent implements OnInit {
       }
     });
   }
+
+  onDeleteCliente(id: number | undefined) {
+    if (!id) return;
+
+    if (confirm('Sei sicuro di voler eliminare questo cliente? L\'operazione è irreversibile.')) {
+      this.isLoading = true; // Mettiamo in caricamento la tabella
+      this.adminService.deleteCliente(id).pipe(
+        finalize(() => {
+          this.isLoading = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: () => {
+          alert('Cliente eliminato con successo!');
+          this.caricaClienti(); // Ricarica la tabella
+        },
+        error: (err) => {
+          console.error('Errore durante l\'eliminazione', err);
+          alert('Impossibile eliminare il cliente. Potrebbe avere ordini associati nel database.');
+        }
+      });
+    }
+  }
 }

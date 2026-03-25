@@ -41,7 +41,7 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
 
     this.caricaDatiIniziali();
 
-    // LA MAGIA È QUI: Gestione intelligente del cambio Box
+    // Gestione intelligente del cambio Box
     this.boxSub = this.composizioneForm.get('boxId')!.valueChanges.pipe(
       tap(() => {
         // Appena l'utente cambia box, svuota la lista e mostra subito il caricamento
@@ -78,7 +78,8 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
     this.adminService.getIngredienti().subscribe(res => {
-      this.ingredienti = res;
+      // res.content se paginato, altrimenti res diretto
+      this.ingredienti = res.content || res;
       this.cdr.detectChanges();
     });
   }
@@ -112,13 +113,40 @@ export class AddIngredienteBoxComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         console.error(err);
-        alert('Errore durante l\'aggiunta dell\'ingrediente.');
+        alert('Errore durante l\'aggiunta dell\'ingrediente. (Controlla che non sia già presente)');
         this.isSubmitting = false;
       }
     });
   }
 
-  // Metodo privato usato solo per fare il refresh dopo l'inserimento
+  // --- MODIFICA: Ricaviamo l'ID partendo dal nome ---
+  onRemoveIngredienteDallaBox(nomeIngrediente: string) {
+    const boxId = this.composizioneForm.get('boxId')?.value;
+    if (!boxId) return;
+
+    // Incrociamo i dati: cerchiamo l'ingrediente nella lista globale partendo dal nome
+    const ingredienteCorrispondente = this.ingredienti.find(i => i.nome === nomeIngrediente);
+
+    if (!ingredienteCorrispondente || !ingredienteCorrispondente.id) {
+      alert("Impossibile trovare l'ID di questo ingrediente nel catalogo globale.");
+      return;
+    }
+
+    if (confirm(`Vuoi davvero rimuovere ${nomeIngrediente} dalla ricetta di questa Box?`)) {
+      this.adminService.removeIngredienteFromBox(boxId, ingredienteCorrispondente.id).subscribe({
+        next: () => {
+          alert('Ingrediente rimosso con successo dalla Box!');
+          this.ricaricaIngredienti(boxId); // Aggiorna la tabella a schermo
+        },
+        error: (err) => {
+          console.error(err);
+          alert('Si è verificato un errore durante la rimozione.');
+        }
+      });
+    }
+  }
+
+  // Metodo privato usato solo per fare il refresh dopo l'inserimento/rimozione
   private ricaricaIngredienti(boxId: number) {
     this.isLoading = true;
     this.adminService.getIngredientiDellaBox(boxId).subscribe({

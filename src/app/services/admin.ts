@@ -126,4 +126,79 @@ export class AdminService {
     return this.http.get<Carrello>(`${this.apiUrl}/utente/${utenteId}/cliente`);
   }
 
+  updateBox(id: number, box: Box): Observable<Box> {
+    return this.http.put<Box>(`${this.apiUrl}/box/${id}`, box);
+  }
+
+  deleteBox(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/box/${id}`);
+  }
+
+  updateIngrediente(id: number, ingrediente: Ingrediente): Observable<any> {
+    return this.http.put(`${this.apiUrl}/ingrediente/${id}`, ingrediente);
+  }
+
+  deleteIngrediente(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/ingrediente/${id}`);
+  }
+
+  removeIngredienteFromBox(boxId: number, ingredienteId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/box/${boxId}/ingrediente/${ingredienteId}`);
+  }
+
+  removeScontoFromBox(scontoId: number, boxId: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/sconto/${scontoId}/box/${boxId}`);
+  }
+
+  updateStatoOrdine(id: number, statoOrdine: string, statoSpedizione?: string): Observable<any> {
+    let url = `${this.apiUrl}/ordine/${id}/stato?statoOrdine=${statoOrdine}`;
+
+    if (statoSpedizione && statoSpedizione !== 'undefined' && statoSpedizione !== 'null' && statoSpedizione.trim() !== '') {
+      url += `&statoSpedizione=${statoSpedizione}`;
+    }
+
+    return this.http.patch(url, {});
+  }
+
+  updateMagazzino(id: number, magazzino: Magazzino): Observable<Magazzino> {
+    return this.http.put<Magazzino>(`${this.apiUrl}/update/magazzino/${id}`, magazzino);
+  }
+
+  deleteMagazzino(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/delete/magazzino/${id}`);
+  }
+
+  updateFornitore(id: number, fornitore: Fornitore): Observable<Fornitore> {
+    return this.http.put<Fornitore>(`${this.apiUrl}/update/fornitore/${id}`, fornitore);
+  }
+
+  deleteFornitore(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/delete/fornitore/${id}`);
+  }
+
+  deleteCliente(id: number):Observable<void>{
+    return this.http.delete<void>(`${this.apiUrl}/delete/cliente/${id}`);
+  }
+
+  getAssociazioniScontoBox(): Observable<any[]> {
+    return this.http.get<any[]>(`${this.apiUrl}/sconto/sconto-box`);
+  }
+
+  updateSconto(id: number, sconto: Sconto): Observable<Sconto> {
+    return this.http.put<Sconto>(`${this.apiUrl}/sconto/${id}`, sconto);
+  }
+
+  deleteSconto(id: number): Observable<void> {
+    return this.http.delete<void>(`${this.apiUrl}/delete/sconto/${id}`);
+  }
+
+  getBoxesInattive(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/boxes/inattive`);
+  }
+
+  getDashboardStats(): Observable<any> {
+    return this.http.get<any>(`${this.apiUrl}/dashboard/stats`);
+  }
+
+
 }

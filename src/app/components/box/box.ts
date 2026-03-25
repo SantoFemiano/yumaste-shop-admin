@@ -14,24 +14,17 @@ import { finalize } from 'rxjs/operators';
 })
 export class BoxComponent implements OnInit {
   boxes: Box[] = [];
+  boxesInattive: Box[] = []; // Array per il modale archivio
   isLoading: boolean = false;
+  isLoadingInattive: boolean = false; // Caricamento per il modale
   isSaving: boolean = false;
 
-  // Nuove variabili per i dettagli della Box
   boxSelezionataDettagli: any = null;
   isLoadingDettagli: boolean = false;
+  boxInModifica: Box | null = null;
 
   nuovaBox: Box = {
-    ean: '',
-    nome: '',
-    categoria: '',
-    prezzo: 0,
-    prezzoScontato: 0,
-    percentualeSconto: 0,
-    porzioni: 1,
-    quantitaInBox: 1,
-    immagineUrl: '',
-    attivo: true
+    ean: '', nome: '', categoria: '', prezzo: 0, prezzoScontato: 0, percentualeSconto: 0, porzioni: 1, quantitaInBox: 1, immagineUrl: '', attivo: true
   };
 
   constructor(
@@ -58,9 +51,55 @@ export class BoxComponent implements OnInit {
     });
   }
 
-  // NUOVO METODO: Scarica i dettagli della box selezionata
+  // --- NUOVO: Carica Archivio Inattive ---
+  apriModaleInattive() {
+    this.isLoadingInattive = true;
+    this.adminService.getBoxesInattive().pipe(
+      finalize(() => {
+        this.isLoadingInattive = false;
+        this.cdr.detectChanges();
+      })
+    ).subscribe({
+      next: (response: any) => {
+        this.boxesInattive = response.content ? response.content : response;
+      },
+      error: (err) => { console.error('Errore nel caricamento box inattive:', err); }
+    });
+  }
+
+  riattivaBox(box: any) { // Mettiamo any perché arriva un CatalogBoxDTO
+    if (confirm(`Vuoi riattivare la box "${box.nome}" e rimetterla a catalogo?`)) {
+
+      // Ricostruiamo l'oggetto Box per accontentare il backend e la chiamata PUT
+      const boxDaRiattivare: Box = {
+        percentualeSconto: 0, prezzoScontato: 0,
+        id: box.id,
+        ean: box.ean,
+        nome: box.nome,
+        categoria: box.categoria,
+        prezzo: box.prezzo,
+        porzioni: box.porzioni,
+        quantitaInBox: box.quantitaInBox ? box.quantitaInBox : 1,
+        immagineUrl: box.immagineUrl,
+        attivo: true
+      };
+
+      this.adminService.updateBox(box.id, boxDaRiattivare).subscribe({
+        next: () => {
+          alert('Box riattivata con successo!');
+          this.apriModaleInattive(); // Ricarica la lista delle inattive nel modale
+          this.caricaBoxes();        // Aggiorna la tabella principale in background
+        },
+        error: (err) => {
+          console.error('Errore durante la riattivazione:', err);
+          alert('Errore durante la riattivazione della box. Controlla la console.');
+        }
+      });
+    }
+  }
+
   apriDettagli(box: Box) {
-    this.boxSelezionataDettagli = null; // Reset dati precedenti
+    this.boxSelezionataDettagli = null;
     if (box.id) {
       this.isLoadingDettagli = true;
       this.adminService.getBoxDettagli(box.id).pipe(
@@ -69,12 +108,10 @@ export class BoxComponent implements OnInit {
           this.cdr.detectChanges();
         })
       ).subscribe({
-        next: (res: any) => {
-          this.boxSelezionataDettagli = res;
-        },
+        next: (res: any) => { this.boxSelezionataDettagli = res; },
         error: (err) => {
           console.error("Errore recupero dettagli box", err);
-          alert("Impossibile caricare i dettagli di questa Box.");
+          alert("Impossibile caricare i dettagli.");
         }
       });
     }
@@ -91,16 +128,45 @@ export class BoxComponent implements OnInit {
       next: () => {
         alert('Box creata con successo!');
         this.caricaBoxes();
-
-        // Svuota il form mantenendo i valori di base corretti
-        form.resetForm({
-          prezzo: 0, porzioni: 1, quantitaInBox: 1, attivo: true,
-        });
+        form.resetForm({ prezzo: 0, porzioni: 1, quantitaInBox: 1, attivo: true });
       },
-      error: (err) => {
-        console.error('Errore durante il salvataggio:', err);
-        alert('Errore durante la creazione della Box.');
-      }
+      error: (err) => { console.error('Errore', err); alert('Errore creazione Box.'); }
     });
+  }
+
+  apriModaleModifica(box: Box) {
+    this.boxInModifica = { ...box };
+  }
+
+  salvaModificaBox() {
+    if (this.boxInModifica && this.boxInModifica.id) {
+      this.isSaving = true;
+      this.adminService.updateBox(this.boxInModifica.id, this.boxInModifica).pipe(
+        finalize(() => {
+          this.isSaving = false;
+          this.cdr.detectChanges();
+        })
+      ).subscribe({
+        next: () => {
+          alert('Box modificata con successo!');
+          this.boxInModifica = null;
+          this.caricaBoxes();
+        },
+        error: (err) => { console.error('Errore', err); alert('Impossibile modificare.'); }
+      });
+    }
+  }
+
+  onDeleteBox(id: number | undefined) {
+    if (!id) return;
+    if (confirm('Sei sicuro di voler disattivare questa Box? Verrà nascosta dal catalogo.')) {
+      this.adminService.deleteBox(id).subscribe({
+        next: () => {
+          alert('Box disattivata con successo.');
+          this.caricaBoxes();
+        },
+        error: (err) => { console.error('Errore', err); alert('Impossibile disattivare.'); }
+      });
+    }
   }
 }

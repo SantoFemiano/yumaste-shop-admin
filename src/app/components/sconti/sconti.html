@@ -25,74 +25,84 @@
 
   <div class="card shadow border-0">
     <div class="card-body p-0">
-      <table class="table table-hover align-middle mb-0">
-        <thead class="table-light">
-        <tr>
-          <th>Nome Promozione</th>
-          <th>Valore</th>
-          <th>Inizio</th>
-          <th>Scadenza</th>
-          <th>Stato</th>
-        </tr>
-        </thead>
-        <tbody>
-          @if (isLoading) {
-            <tr>
-              <td colspan="5" class="text-center py-5">
-                <div class="spinner-border text-primary" role="status"></div>
-                <div class="mt-2 text-muted small fw-bold">Caricamento in corso...</div>
-              </td>
-            </tr>
-          } @else {
-            @for (s of sconti; track s.nome) {
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+          <tr>
+            <th class="ps-4">Nome Promozione</th>
+            <th>Valore</th>
+            <th>Inizio</th>
+            <th>Scadenza</th>
+            <th>Stato</th>
+            <th class="pe-4 text-end">Azioni</th>
+          </tr>
+          </thead>
+          <tbody>
+            @if (isLoading) {
               <tr>
-                <td class="fw-semibold text-primary">{{ s.nome }}</td>
-                <td><span class="badge bg-info text-dark">{{ s.valore }}</span></td>
-                <td>{{ s.inizioSconto }}</td>
-                <td [ngClass]="{'text-danger fw-bold': !s.attivo}">{{ s.fineSconto }}</td>
-                <td>
-                  <span class="badge" [ngClass]="s.attivo ? 'bg-success' : 'bg-danger'">
-                    {{ s.attivo ? 'Attivo' : 'Scaduto/Inattivo' }}
-                  </span>
+                <td colspan="6" class="text-center py-5">
+                  <div class="spinner-border text-primary" role="status"></div>
+                  <div class="mt-2 text-muted small fw-bold">Caricamento in corso...</div>
                 </td>
               </tr>
-            } @empty {
-              <tr>
-                <td colspan="5" class="text-center py-5 text-muted">
-                  <i class="bi bi-tags-fill fs-3 d-block mb-2"></i>
-                  Nessuno sconto presente a sistema.
-                </td>
-              </tr>
+            } @else {
+              @for (s of sconti; track s.nome) {
+                <tr>
+                  <td class="fw-semibold text-primary ps-4">{{ s.nome }}</td>
+                  <td>
+                    <span class="badge bg-info text-dark shadow-sm fs-6 px-3 py-2">-{{ s.valore }}%</span>
+                  </td>
+                  <td>{{ s.inizioSconto }}</td>
+                  <td [ngClass]="{'text-danger fw-bold': !s.attivo}">{{ s.fineSconto }}</td>
+                  <td>
+                    <span class="badge" [ngClass]="s.attivo ? 'bg-success' : 'bg-danger'">
+                      {{ s.attivo ? 'Attivo' : 'Scaduto/Inattivo' }}
+                    </span>
+                  </td>
+                  <td class="pe-4 text-end">
+                    <div class="d-flex gap-2 justify-content-end align-items-center">
+                      <button class="btn btn-warning shadow-sm" data-bs-toggle="modal" data-bs-target="#modalModificaSconto" (click)="apriModaleModifica(s)">
+                        <i class="bi bi-pencil-square me-1"></i> Modifica
+                      </button>
+                      <button class="btn btn-danger shadow-sm" (click)="onDeleteSconto(s.id)">
+                        <i class="bi bi-trash me-1"></i> Elimina
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              } @empty {
+                <tr>
+                  <td colspan="6" class="text-center py-5 text-muted">
+                    <i class="bi bi-tags-fill fs-3 d-block mb-2"></i>
+                    Nessuno sconto presente a sistema.
+                  </td>
+                </tr>
+              }
             }
-          }
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
 
 <div class="modal fade" id="modalSconto" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog">
-    <div class="modal-content">
-
-      <div class="modal-header bg-light">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light border-bottom-0">
         <h5 class="modal-title fw-bold text-primary">Crea Nuovo Sconto</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-
       <form #scontoForm="ngForm" (ngSubmit)="salvaSconto(scontoForm)">
-        <div class="modal-body">
-
+        <div class="modal-body p-4">
           <div class="mb-3">
             <label class="form-label small fw-bold">Nome Promozione / Codice</label>
             <input type="text" class="form-control" name="nome" [(ngModel)]="nuovoSconto.nome" required placeholder="Es. BLACKFRIDAY2026">
           </div>
-
           <div class="mb-3">
-            <label class="form-label small fw-bold">Valore (Sconto)</label>
-            <input type="number" min="1" class="form-control" name="valore" [(ngModel)]="nuovoSconto.valore" required>
+            <label class="form-label small fw-bold">Valore (Sconto %)</label>
+            <input type="number" min="1" max="100" class="form-control" name="valore" [(ngModel)]="nuovoSconto.valore" required>
           </div>
-
           <div class="row">
             <div class="col-md-6 mb-3">
               <label class="form-label small fw-bold">Data Inizio</label>
@@ -103,15 +113,12 @@
               <input type="date" class="form-control" name="fineSconto" [(ngModel)]="nuovoSconto.fineSconto" required>
             </div>
           </div>
-
           <div class="form-check form-switch mt-3">
             <input class="form-check-input" type="checkbox" id="attivoSconto" name="attivo" [(ngModel)]="nuovoSconto.attivo">
             <label class="form-check-label fw-bold" for="attivoSconto">Attiva Subito</label>
           </div>
-
         </div>
-
-        <div class="modal-footer bg-light">
+        <div class="modal-footer bg-light border-top-0">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
           <button type="submit" class="btn btn-success fw-bold" [disabled]="!scontoForm.valid || isSaving">
             @if (isSaving) {
@@ -123,7 +130,51 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+</div>
 
+<div class="modal fade" id="modalModificaSconto" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content border-0 shadow" *ngIf="scontoInModifica">
+      <div class="modal-header bg-warning border-bottom-0">
+        <h5 class="modal-title fw-bold text-dark">
+          <i class="bi bi-pencil-square me-2"></i>Modifica Sconto
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form #editScontoForm="ngForm" (ngSubmit)="salvaModificaSconto()">
+        <div class="modal-body p-4">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Nome Promozione / Codice</label>
+            <input type="text" class="form-control" name="editNome" [(ngModel)]="scontoInModifica.nome" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Valore (Sconto %)</label>
+            <input type="number" min="1" max="100" class="form-control" name="editValore" [(ngModel)]="scontoInModifica.valore" required>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Data Inizio</label>
+              <input type="date" class="form-control" name="editInizioSconto" [(ngModel)]="scontoInModifica.inizioSconto" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Data Fine</label>
+              <input type="date" class="form-control" name="editFineSconto" [(ngModel)]="scontoInModifica.fineSconto" required>
+            </div>
+          </div>
+          <div class="form-check form-switch mt-3">
+            <input class="form-check-input" type="checkbox" id="editAttivoSconto" name="editAttivo" [(ngModel)]="scontoInModifica.attivo">
+            <label class="form-check-label fw-bold" for="editAttivoSconto">Sconto Attivo</label>
+          </div>
+        </div>
+        <div class="modal-footer bg-light border-top-0">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
+          <button type="submit" class="btn btn-warning fw-bold" data-bs-dismiss="modal" [disabled]="!editScontoForm.valid || isSaving">
+            Salva Modifiche
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>

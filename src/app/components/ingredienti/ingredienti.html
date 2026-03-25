@@ -32,13 +32,14 @@
           <th>Nome</th>
           <th>Fornitore</th>
           <th>Prezzo</th>
-          <th>Valori & Allergeni </th>
+          <th>Stato</th>
+          <th>Azioni</th>
         </tr>
         </thead>
         <tbody>
           @if (isLoading) {
             <tr>
-              <td colspan="5" class="text-center py-5">
+              <td colspan="6" class="text-center py-5">
                 <div class="spinner-border text-primary" role="status"></div>
                 <div class="mt-2 text-muted small fw-bold">Caricamento in corso...</div>
               </td>
@@ -48,19 +49,30 @@
               <tr>
                 <td class="text-muted small">{{ ing.ean }}</td>
                 <td class="fw-bold text-primary">{{ ing.nome }}</td>
-
                 <td>{{ ing.nomeFornitore }}</td>
-
-                <td>€ {{ ing.prezzoPerUnita }} / {{ ing.unitaMisura }}</td>
+                <td class="fw-bold">€ {{ ing.prezzoPerUnita }} / {{ ing.unitaMisura }}</td>
                 <td>
-                  <button class="btn btn-sm btn-outline-info" data-bs-toggle="modal" data-bs-target="#modalDettagli" (click)="apriDettagli(ing)">
-                    <i class="bi bi-eye"></i> Dettagli
-                  </button>
+                  <span class="badge" [ngClass]="ing.attivo ? 'bg-success' : 'bg-danger'">
+                    {{ ing.attivo ? 'Attivo' : 'Inattivo' }}
+                  </span>
+                </td>
+                <td>
+                  <div class="d-flex gap-2 align-items-center">
+                    <button class="btn btn-info text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalDettagli" (click)="apriDettagli(ing)">
+                      <i class="bi bi-eye me-1"></i> Dettagli
+                    </button>
+                    <button class="btn btn-warning shadow-sm" data-bs-toggle="modal" data-bs-target="#modalModificaIngrediente" (click)="apriModaleModifica(ing)">
+                      <i class="bi bi-pencil-square me-1"></i> Modifica
+                    </button>
+                    <button class="btn btn-danger shadow-sm" (click)="onDeleteIngrediente(ing.id)">
+                      <i class="bi bi-trash me-1"></i> Elimina
+                    </button>
+                  </div>
                 </td>
               </tr>
             } @empty {
               <tr>
-                <td colspan="5" class="text-center py-5 text-muted">
+                <td colspan="6" class="text-center py-5 text-muted">
                   <i class="bi bi-basket3 fs-3 d-block mb-2"></i>
                   Nessun ingrediente in magazzino.
                 </td>
@@ -76,35 +88,25 @@
 <div class="modal fade" id="modalIngrediente" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-lg">
     <div class="modal-content">
-
       <div class="modal-header bg-light">
         <h5 class="modal-title fw-bold text-primary">Aggiungi Ingrediente Completo</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
-
       <form #ingredienteForm="ngForm" (ngSubmit)="salvaIngrediente()">
         <div class="modal-body p-0">
-
           <ul class="nav nav-tabs bg-light pt-2 px-3" id="ingredienteTabs" role="tablist">
             <li class="nav-item" role="presentation">
-              <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#tabBase" type="button">
-                1. Dati Base
-              </button>
+              <button class="nav-link active fw-bold" data-bs-toggle="tab" data-bs-target="#tabBase" type="button">1. Dati Base</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tabNutrizionali" type="button">
-                2. Valori Nutrizionali
-              </button>
+              <button class="nav-link fw-bold" data-bs-toggle="tab" data-bs-target="#tabNutrizionali" type="button">2. Valori Nutrizionali</button>
             </li>
             <li class="nav-item" role="presentation">
-              <button class="nav-link fw-bold text-danger" data-bs-toggle="tab" data-bs-target="#tabAllergeni" type="button">
-                3. Allergeni
-              </button>
+              <button class="nav-link fw-bold text-danger" data-bs-toggle="tab" data-bs-target="#tabAllergeni" type="button">3. Allergeni</button>
             </li>
           </ul>
 
           <div class="tab-content p-4" id="ingredienteTabsContent">
-
             <div class="tab-pane fade show active" id="tabBase">
               <div class="row">
                 <div class="col-md-4 mb-3">
@@ -121,7 +123,6 @@
                   </select>
                 </div>
               </div>
-
               <div class="mb-3">
                 <label class="form-label small fw-bold">Nome Ingrediente</label>
                 <input type="text" class="form-control" name="nome" [(ngModel)]="nuovoIngrediente.nome" required>
@@ -207,8 +208,8 @@
                 }
               </div>
             </div>
-
-          </div> </div>
+          </div>
+        </div>
 
         <div class="modal-footer bg-light">
           <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
@@ -226,17 +227,80 @@
   </div>
 </div>
 
+<div class="modal fade" id="modalModificaIngrediente" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" *ngIf="ingredienteInModifica">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title fw-bold text-dark">
+          <i class="bi bi-pencil-square me-2"></i>Modifica Ingrediente
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form #editIngForm="ngForm" (ngSubmit)="salvaModificaIngrediente()">
+        <div class="modal-body p-4">
+          <div class="row">
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">EAN (Codice)</label>
+              <input type="text" class="form-control" name="editEan" [(ngModel)]="ingredienteInModifica.ean" required>
+            </div>
+            <div class="col-md-8 mb-3">
+              <label class="form-label small fw-bold">Fornitore</label>
+              <select class="form-select border-primary" name="editPartitaIva" [(ngModel)]="ingredienteInModifica.partitaIva" required>
+                @for (f of fornitori; track f.partitaIva) {
+                  <option [ngValue]="f.partitaIva">P.IVA: {{ f.partitaIva }} ({{ f.nome }})</option>
+                }
+              </select>
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Nome Ingrediente</label>
+            <input type="text" class="form-control" name="editNome" [(ngModel)]="ingredienteInModifica.nome" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Descrizione</label>
+            <textarea class="form-control" name="editDescrizione" rows="2" [(ngModel)]="ingredienteInModifica.descrizione" required></textarea>
+          </div>
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Prezzo (€)</label>
+              <input type="number" step="0.01" min="0" class="form-control" name="editPrezzo" [(ngModel)]="ingredienteInModifica.prezzoPerUnita" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label class="form-label small fw-bold">Unità di Misura</label>
+              <select class="form-select" name="editUnitaMisura" [(ngModel)]="ingredienteInModifica.unitaMisura" required>
+                <option value="g">Grammi (g)</option>
+                <option value="kg">Chilogrammi (kg)</option>
+                <option value="ml">Millilitri (ml)</option>
+                <option value="l">Litri (L)</option>
+                <option value="pz">Pezzi (pz)</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-check form-switch mt-3">
+            <input class="form-check-input" type="checkbox" id="editAttivoIng" name="editAttivo" [(ngModel)]="ingredienteInModifica.attivo">
+            <label class="form-check-label fw-bold" for="editAttivoIng">Ingrediente Attivo / Disponibile</label>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
+          <button type="submit" class="btn btn-warning fw-bold" data-bs-dismiss="modal" [disabled]="!editIngForm.valid || isSaving">
+            Salva Modifiche
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="modalDettagli" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content border-0 shadow">
-
       <div class="modal-header bg-info text-white">
         <h5 class="modal-title fw-bold">
           <i class="bi bi-info-circle me-2"></i>Scheda Tecnica: {{ ingredienteSelezionato?.nome }}
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
-
       <div class="modal-body">
         @if (ingredienteSelezionato) {
           <div class="mb-4">
@@ -247,7 +311,6 @@
               <div class="col-12 mb-1"><strong>Descrizione:</strong> <span class="text-muted">{{ ingredienteSelezionato.descrizione }}</span></div>
             </div>
           </div>
-
           <div class="mb-4">
             <h6 class="fw-bold border-bottom pb-2 text-primary"><i class="bi bi-activity me-1"></i> Valori Nutrizionali (per 100{{ ingredienteSelezionato.unitaMisura }})</h6>
             @if (valoriSelezionati) {
@@ -264,22 +327,22 @@
               <p class="text-muted small mt-2 px-2 fst-italic">Nessun valore nutrizionale registrato per questo ingrediente.</p>
             }
           </div>
-
           <div>
-            <h6 class="fw-bold border-bottom pb-2 text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Allergeni Segnalati</h6>
-            <div class="mt-2 px-2">
-              @if (allergeniSelezionati && allergeniSelezionati.length > 0) {
-                @for (a of allergeniSelezionati; track a.id) {
-                  <span class="badge bg-danger me-2 mb-2 p-2 shadow-sm">{{ a.nome || a.nomeAllergene || 'Allergene id: ' + a.allergeneId }}</span>
+            <div>
+              <h6 class="fw-bold border-bottom pb-2 text-danger"><i class="bi bi-exclamation-triangle me-1"></i> Allergeni Segnalati</h6>
+              <div class="mt-2 px-2">
+                @if (allergeniSelezionati && allergeniSelezionati.length > 0) {
+                  @for (a of allergeniSelezionati; track a.id) {
+                    <span class="badge bg-danger me-2 mb-2 p-2 shadow-sm">{{ a.nome }}</span>
+                  }
+                } @else {
+                  <span class="badge bg-success p-2 shadow-sm"><i class="bi bi-check-circle me-1"></i> Nessun allergene</span>
                 }
-              } @else {
-                <span class="badge bg-success p-2 shadow-sm"><i class="bi bi-check-circle me-1"></i> Nessun allergene</span>
-              }
+              </div>
             </div>
           </div>
         }
       </div>
-
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Chiudi Scheda</button>
       </div>

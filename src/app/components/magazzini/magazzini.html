@@ -49,9 +49,17 @@
                 <td>{{ m.via }}, {{ m.civico }}</td>
                 <td>{{ m.citta }} ({{ m.provincia }}) - {{ m.cap }}</td>
                 <td class="text-end pe-4">
-                  <button class="btn btn-sm btn-info text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalInventario" (click)="apriInventario(m)">
-                    <i class="bi bi-box-seam me-1"></i> Gestisci Inventario
-                  </button>
+                  <div class="d-flex gap-2 justify-content-end align-items-center">
+                    <button class="btn btn-info text-white shadow-sm" data-bs-toggle="modal" data-bs-target="#modalInventario" (click)="apriInventario(m)">
+                      <i class="bi bi-box-seam me-1"></i> Inventario
+                    </button>
+                    <button class="btn btn-warning shadow-sm" data-bs-toggle="modal" data-bs-target="#modalModificaMagazzino" (click)="apriModaleModifica(m)">
+                      <i class="bi bi-pencil-square me-1"></i> Modifica
+                    </button>
+                    <button class="btn btn-danger shadow-sm" (click)="onDeleteMagazzino(m.id)">
+                      <i class="bi bi-trash me-1"></i> Elimina
+                    </button>
+                  </div>
                 </td>
               </tr>
             } @empty {
@@ -116,10 +124,60 @@
   </div>
 </div>
 
+<div class="modal fade" id="modalModificaMagazzino" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content" *ngIf="magazzinoInModifica">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title fw-bold text-dark">
+          <i class="bi bi-pencil-square me-2"></i>Modifica Magazzino
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form #editMagazzinoForm="ngForm" (ngSubmit)="salvaModificaMagazzino()">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small fw-bold">Nome Magazzino</label>
+            <input type="text" class="form-control" name="editNome" [(ngModel)]="magazzinoInModifica.nome" required>
+          </div>
+          <div class="row">
+            <div class="col-md-8 mb-3">
+              <label class="form-label small fw-bold">Via / Indirizzo</label>
+              <input type="text" class="form-control" name="editVia" [(ngModel)]="magazzinoInModifica.via" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Civico</label>
+              <input type="text" class="form-control" name="editCivico" [(ngModel)]="magazzinoInModifica.civico" required>
+            </div>
+          </div>
+          <div class="row">
+            <div class="col-md-5 mb-3">
+              <label class="form-label small fw-bold">Città</label>
+              <input type="text" class="form-control" name="editCitta" [(ngModel)]="magazzinoInModifica.citta" required>
+            </div>
+            <div class="col-md-4 mb-3">
+              <label class="form-label small fw-bold">Provincia (Sigla)</label>
+              <input type="text" class="form-control" name="editProvincia" [(ngModel)]="magazzinoInModifica.provincia" required maxlength="2">
+            </div>
+            <div class="col-md-3 mb-3">
+              <label class="form-label small fw-bold">CAP</label>
+              <input type="text" class="form-control" name="editCap" [(ngModel)]="magazzinoInModifica.cap" required maxlength="5">
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-light">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" [disabled]="isSaving">Annulla</button>
+          <button type="submit" class="btn btn-warning fw-bold" data-bs-dismiss="modal" [disabled]="editMagazzinoForm.invalid || isSaving">
+            Salva Modifiche
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
 <div class="modal fade" id="modalInventario" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-xl modal-dialog-scrollable">
     <div class="modal-content border-0 shadow">
-
       <div class="modal-header bg-info text-white">
         <h5 class="modal-title fw-bold">
           <i class="bi bi-box-seam me-2"></i>Inventario Magazzino: {{ magazzinoSelezionato?.nome }}
@@ -210,13 +268,10 @@
             </table>
           </div>
         </div>
-
       </div>
-
       <div class="modal-footer bg-light">
         <button type="button" class="btn btn-secondary fw-bold" data-bs-dismiss="modal">Chiudi Inventario</button>
       </div>
-
     </div>
   </div>
 </div>
