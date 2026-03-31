@@ -14,6 +14,7 @@ Pannello di amministrazione della piattaforma **Yumaste** — una SPA Angular ri
 ## 📋 Indice
 
 - [Panoramica](#-panoramica)
+- [Screenshot](#-screenshot)
 - [Stack Tecnologico](#-stack-tecnologico)
 - [Struttura del Progetto](#-struttura-del-progetto)
 - [Componenti e Routing](#-componenti-e-routing)
@@ -39,6 +40,40 @@ Yumaste Admin Shop è il pannello di controllo back-office della piattaforma. Ac
 - Visualizzare e gestire **clienti** e i loro indirizzi
 - Monitorare gli **ordini** dei clienti
 - Ispezionare i **carrelli** degli utenti
+
+---
+
+## 📸 Screenshot
+
+### 🏠 Dashboard
+![Dashboard Overview](Dashboard_Overview.png)
+
+### 📦 Gestione Box
+![Gestione Box](Gestione_Box.png)
+
+### 🥦 Gestione Ingredienti
+![Gestione Ingredienti](Gestione_Ingredienti.png)
+
+### 🔗 Gestione Ingredienti Box
+![Gestione Ingredienti Box](Gestione_Ingredienti_Box.png)
+
+### 🏭 Gestione Fornitori
+![Gestione Fornitori](Gestione_Fornitori.png)
+
+### 🏪 Gestione Magazzini
+![Gestione Magazzini](Gestione_Magazzini.png)
+
+### 🏷️ Gestione Sconti
+![Gestione Sconti](Gestione_Sconti.png)
+
+### 🎁 Gestione Sconti Box
+![Gestione Sconti Box](Gestione_Box_Sconti.png)
+
+### 👥 Gestione Clienti
+![Gestione Clienti](Gestione_Clienti.png)
+
+### 🛒 Gestione Ordini
+![Gestione Ordini](Gestione_Ordini.png)
 
 ---
 
@@ -151,10 +186,10 @@ Tutte le interfacce del dominio sono definite in `src/app/models/admin-models.ts
 ## 🔐 Sicurezza
 
 ### Auth Guard
-Il file `auth-guard.ts` implementa `CanActivate` e blocca l'accesso alle rotte protette se l'utente non è autenticato, reindirizzando al `/login`. [cite:25]
+Il file `auth-guard.ts` implementa `CanActivate` e blocca l'accesso alle rotte protette se l'utente non è autenticato, reindirizzando al `/login`.
 
 ### HTTP Interceptor
-`auth-interceptor.ts` è un **HttpInterceptor** funzionale (Angular 21) che aggiunge automaticamente l'header JWT a **ogni chiamata HTTP** uscente verso il backend, senza dover gestire il token manualmente in ogni servizio. [cite:29]
+`auth-interceptor.ts` è un **HttpInterceptor** funzionale (Angular 21) che aggiunge automaticamente l'header JWT a **ogni chiamata HTTP** uscente verso il backend, senza dover gestire il token manualmente in ogni servizio.
 
 ```typescript
 // Il token viene letto dal localStorage e iniettato automaticamente
