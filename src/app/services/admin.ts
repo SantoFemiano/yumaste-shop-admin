@@ -23,12 +23,11 @@ export class AdminService {
 
   private apiUrl = 'http://localhost:8084/api/admin';
 
-
   constructor(private http: HttpClient) { }
 
   generateBoxWithAi(suggerimento?: string): Observable<AiGenerateBoxResponseDTO> {
     const body = suggerimento ? { suggerimentoOpzionale: suggerimento } : {};
-    return this.http.post<AiGenerateBoxResponseDTO>(`${this.apiRenderUrlAdmin}/admin/ai/genera-box`, body);
+    return this.http.post<AiGenerateBoxResponseDTO>(`${this.apiRenderUrlAdmin}/ai/genera-box`, body);
   }
 
   generaIngredientiAi(quantita: number): Observable<Ingrediente[]> {
