@@ -30,9 +30,9 @@ export class AdminService {
     return this.http.post<AiGenerateBoxResponseDTO>(`${this.apiRenderUrlAdmin}/ai/genera-box`, body);
   }
 
-  generaIngredientiAi(quantita: number): Observable<Ingrediente[]> {
+  generaIngredientiAi(quantita: number, suggerimento: string): Observable<Ingrediente[]> {
     return this.http.post<Ingrediente[]>(
-      `${this.apiRenderUrlAdmin}/ai/genera-inserisci-ingredienti?quantita=${quantita}`,
+      `${this.apiRenderUrlAdmin}/ai/genera-inserisci-ingredienti?quantita=${quantita}&suggerimento=${suggerimento}`,
       {}
     );
   }
