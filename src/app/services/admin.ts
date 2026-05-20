@@ -23,7 +23,6 @@ export class AdminService {
 
   private apiUrl = 'http://localhost:8084/api/admin';
 
-
   constructor(private http: HttpClient) { }
 
   generateBoxWithAi(suggerimento?: string): Observable<AiGenerateBoxResponseDTO> {
