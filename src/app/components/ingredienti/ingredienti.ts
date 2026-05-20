@@ -170,12 +170,13 @@ export class IngredientiComponent implements OnInit {
   generaConIA() {
     const input = prompt("Quanti ingredienti vuoi inventare con l'Intelligenza Artificiale?", "3");
     const quantita = parseInt(input || '0', 10);
+    const suggerimento = prompt("Descrivi gli ingredienti che desideri generare (opzionale):", "") || "";
 
     if (quantita > 0) {
       this.isGeneratingAi = true; // Mostra il caricamento
 
       // Chiama il metodo nel tuo AdminService
-      this.adminService.generaIngredientiAi(quantita).pipe(
+      this.adminService.generaIngredientiAi(quantita,suggerimento).pipe(
         finalize(() => {
           this.isGeneratingAi = false;
           this.cdr.detectChanges();
